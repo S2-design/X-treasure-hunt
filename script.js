@@ -64,6 +64,62 @@ result.textContent = 'Invalid code. Make sure you scanned the correct QR.';
 }
 });
 }
+//*** */
+let video = document.getElementById("video");
+let canvas = document.getElementById("canvas");
+let ctx = canvas.getContext("2d");
+
+let scanning = false;
+let stream;
+
+// START CAMERA
+document.getElementById("startCam").onclick = async function () {
+    try {
+        stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: "environment" },
+        });
+
+        video.srcObject = stream;
+        video.setAttribute("playsinline", true);
+        await video.play();
+
+        scanning = true;
+        scanFrame();
+    } catch (err) {
+        alert("Camera access denied or unavailable: " + err);
+    }
+};
+
+// SCAN LOOP
+function scanFrame() {
+    if (!scanning) return;
+
+    canvas.height = video.videoHeight;
+    canvas.width = video.videoWidth;
+
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    let imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+    let code = jsQR(imgData.data, imgData.width, imgData.height);
+    if (code) {
+        scanning = false;
+
+        // STOP CAMERA
+        stream.getTracks().forEach(t => t.stop());
+
+        // SHOW SCAN RESULT
+        document.getElementById("scanResult").innerText = "Scanned: " + code.data;
+
+        // REDIRECT to next question
+        window.location.href = code.data;
+        return;
+    }
+
+    requestAnimationFrame(scanFrame);
+}
+
+
 // Scanner page logic
 if(window.location.pathname.endsWith('scanner.html')){
 const startCam = document.getElementById('startCam');
