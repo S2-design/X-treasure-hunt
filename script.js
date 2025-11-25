@@ -196,5 +196,31 @@ reader.readAsDataURL(f);
 });
 }
 
+//close button
+document.getElementById("closeBtn").addEventListener("click", function (e) {
+    e.preventDefault();
+
+    // Stop camera safely
+    try {
+        if (window.stream) {
+            window.stream.getTracks().forEach(t => t.stop());
+        }
+    } catch (err) {}
+
+    // Read ?from=qX from the URL
+    const params = new URLSearchParams(window.location.search);
+    let page = params.get("from");
+
+    // If parameter missing → do nothing except return to index
+    if (!page) page = "index";
+
+    // Ensure .html extension
+    if (!page.endsWith(".html")) page += ".html";
+
+    // Redirect back to the right question page
+    window.location.href = page;
+});
+
 
 })();
+
